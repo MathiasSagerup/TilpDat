@@ -24,11 +24,7 @@ typedef enum {
 char str[20];
 #define N_BUTTONS 3
 
-typedef enum { typedef enum { 
-    BUTTON_HALL_UP      = 0,
-    BUTTON_HALL_DOWN    = 1,
-    BUTTON_CAB          = 2
-} ButtonType;
+typedef enum { 
     BUTTON_HALL_UP      = 0,
     BUTTON_HALL_DOWN    = 1,
     BUTTON_CAB          = 2
