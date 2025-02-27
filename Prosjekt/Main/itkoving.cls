@@ -60,15 +60,13 @@
 }
 
 
-
-
 \renewcommand{\maketitle}{
   \begin{flushleft}
   \begin{tabular}{|lr|}
   \hline
     \multirow{3}{*}{\includegraphics{figures/ntnulogo_blue.pdf}} & \rule{0pt}{3ex} \@exsub \\& \@exsem\ \@exyear \\& \\
     \multicolumn{2}{|c|}{\rule{0.9737\textwidth}{0pt}} \\
-    \footnotesize Norges teknisk-naturvitenskapelige universitet & \textbf{\ifsolution Solution \else Øving \fi \@exnum} \\
+    \footnotesize Norges teknisk-naturvitenskapelige universitet & \textbf{\ifsolution Solution \else Lab \fi \@exnum} \\
     \footnotesize Institutt for teknisk kybernetikk	& \@extitle	\\
     \hline 
     \end{tabular}

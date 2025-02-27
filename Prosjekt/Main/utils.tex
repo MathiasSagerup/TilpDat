@@ -4,15 +4,16 @@
 \usepackage{multicol}
 \usepackage{subcaption}
 \usepackage{algorithm}
-\usepackage{algpseudocode}
-\usepackage[backend=biber, style=verbose]{biblatex}
-\addbibresource{references.bib}
 \usepackage{csquotes}
+\usepackage{algpseudocode}
+\usepackage[style=verbose]{biblatex}
 \usepackage{hyperref}
 
 % generisk tekst
 \usepackage[utf8]{inputenc}
 
+% for hyperlinks
+\usepackage{hyperref}
 
 % grafisk genering av directory
 \usepackage{dirtree}
@@ -37,20 +38,8 @@
   stringstyle=\color{mauve},
   breaklines=true,
   breakatwhitespace=true,
-  tabsize=3,
-  mathescape=false,
-  morekeywords={ifeq, endif},
+  tabsize=3
 }
-\lstset{literate=%
-{æ}{{\ae}}1
-{å}{{\aa}}1
-{ø}{{\o}}1
-{Æ}{{\AE}}1
-{Å}{{\AA}}1
-{Ø}{{\O}}1
-}
-\lstset{extendedchars=\true}
-\lstset{inputencoding=ansinew}
 \usepackage[parfill]{parskip}
 
 
@@ -59,6 +48,9 @@
 \definecolor{gray}{rgb}{0.5,0.5,0.5}
 \definecolor{mauve}{rgb}{0.58,0,0.82}
 \definecolor{NTNU_blue}{rgb}{0, 0.3137, 0.6196}
+\definecolor{RWTHrot100}{rgb}{0.800000 0.027451 0.117647}
+
+\definecolor{RWTHblau100}{rgb}{0.000000 0.329412 0.623529}
  \hypersetup{
      colorlinks=true,
      linkcolor=NTNU_blue,
@@ -82,7 +74,11 @@
 
 \usetikzlibrary{calc,patterns,angles,quotes}
 \usepackage[margin=1.25in]{geometry}
+\usepackage{outlines}
 
+
+\usepackage{siunitx}
+\DeclareSIUnit{\pound}{lb}
 \newcounter{alphasect}
 \def\alphainsection{0}
 
@@ -112,9 +108,3 @@
   \setcounter{alphasect}{0}
   \def\alphainsection{0}
 }%
-
-\definecolor{RWTHrot100}{rgb}{0.800000 0.027451 0.117647}
-
-
-% for hyperlinks
-\usepackage{hyperref}
