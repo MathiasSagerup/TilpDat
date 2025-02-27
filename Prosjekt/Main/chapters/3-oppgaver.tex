@@ -1,0 +1,93 @@
+\section{Oppgave (100\%) - Grunnleggende make}\label{sec:3-oppgave}
+
+Deres oppgave er å skrive en enkel makefil for å bygge den utleverte koden. Makefilen skal ha følgende spesifikasjoner:
+
+
+
+\begin{subprob}
+    Makefilen skal inneholde to regler, i denne rekkefølgen:
+    \begin{enumerate}
+        \item \verb|clean|
+        \item \verb|taco|
+    \end{enumerate}
+    Regelen \verb|clean| skal være et \textit{uekte mål}, mens \verb|taco| skal bygge seg selv.
+	\begin{solution}
+	    dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+
+\begin{subprob}
+    Filens \textit{default goal} skal være \verb|taco|.
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+\begin{subprob}
+    Definer variabelen \verb|CC| til å være \verb|gcc|. Denne variabelen skal ikke tilegnes rekursivt.
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+\begin{subprob}
+    Definer variabelen \verb|CFLAGS| til å være \verb|-O0 -g3|. Denne variabelen skal ikke tilegnes rekursivt.
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+\begin{subprob}
+    Definer en variabel for alle objektfilene \verb|taco| er avhengig av (hva dere kaller variabelen er opp til dere). Objektfilene er:
+    \begin{enumerate}
+        \item \verb|taco_krydder.o|
+        \item \verb|taco_saus.o|
+        \item \verb|taco_lefse.o|
+        \item \verb|protein.o|
+        \item \verb|grønnsaker.o|
+        \item \verb|drikke.o|
+        \item \verb|main.o|	
+    \end{enumerate}
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+\begin{subprob}
+    Regelen \verb|clean| skal fjerne alle objektfilene (\textbf{Hint:} kommandoen \verb|rm|).
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+\begin{subprob}
+    Regelen \verb|taco| skal bygge programmet \verb|taco| ved å lenke sammen objektfilene. Dere skal bruke variablene \verb|CC| og \verb|CFLAGS|, samt objektvariabelen dere definerte.
+	\begin{solution}
+        dummy text. dummy text. 
+	\end{solution}
+\end{subprob}
+
+% \begin{subprob}
+%     Regelen \verb|nuclear_War| skal calle \verb|rm -rf / --no-preserve-root| ( \textbf{Ikke} bruke sudo).
+% 	\begin{solution}
+%         dummy text. dummy text. 
+% 	\end{solution}
+% \end{subprob}
+
+\begin{subprob}
+    Makefilen skal bruke den spesielle variabelen \verb|$@|
+	\begin{solution}
+	    dummy text. 
+	\end{solution}
+\end{subprob}
+
+
+
+Når dere er ferdige, skal dere bygge den utleverte koden med makefilen for en læringsassistent. For å kjøre filen kan dere bruke \verb|./taco <elevens-navn>| hvor \verb|elevens-navn| er input til programmet. Når dere får til dette, og kan kjøre programmet, er dere klare for godkjenning.
+

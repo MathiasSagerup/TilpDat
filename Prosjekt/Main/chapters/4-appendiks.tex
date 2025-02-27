@@ -1,0 +1,90 @@
+\appendix
+
+\section{Appendiks - Mer avanserte funksjoner}\label{4-appendiks}
+
+
+Oppgaven dere nå løste var gjort med `brute force'. Dette funker, men det finnes andre elegante løsninger. Disse løsningene er basert på mønstergjennskjenning og dedikerte kilde- eller byggemapper.
+
+Sett at man har et prosjekt som heter \verb|pizza|. Prosjektet består av kildefilene \verb|main.c, pizza_bread.c, pizza_sauce.c|, og \verb|pizza_topping.c|. For å holde oversikt er det lurt å ha en dedikert kildemappe der man lagrer kildekoden til prosjektet (vanligvis blir denne mappen kalt \verb|source|). I tillegg er det også ønskelig å ha en mappe for alle kompilerte \textit{artefakter} (vanligvis blir denne mappen kalt \verb|build|). 
+
+I toppnivåmappen har man makefilen og det ferdige programmet:
+
+\dirtree{%
+.1 pizza.
+.1 Makefile.
+.1 build.
+.2 main.o.
+.2 pizza\_bread.o.
+.2 pizza\_sauce.o.
+.2 pizza\_topping.o.
+.1 source.
+.2 main.c.
+.2 pizza\_bread.c.
+.2 pizza\_sauce.c.
+.2 pizza\_topping.c.
+}
+
+Det eneste man trenger for å bygge \verb|pizza| er kildefilene (\verb|source|) og makefilen. Det er derfor ønskelig å kunne automatisk opprette byggemappen (\verb|build|) om den ikke finnes. Dette kan gjøres med en \textit{order-only prerequisite}. Når man beskriver hvilke filer \verb|make| trenger for å bygge et mål, kan man bruke vertikal pipe (\texttt{|}) for å fortelle \verb|make| at avhengigheten kun trenger å eksistere:
+
+\begin{lstlisting}
+target : dependency_1 dependency_2 | order_only_1 order_only_2
+         [commands to build target]
+\end{lstlisting}
+
+Alle avhengigheter som kommer etter \texttt{|}-tegnet vil kun bygges dersom de enten ikke allerede finnes, eller om man eksplisitt ber \verb|make| om å bygge det bestemte målet. Dette er nyttig for å automatisk opprette byggemappen om den ikke finnes. 
+
+For å lage en regel om at kompilerte filer skal legges i byggemappen må man overstyre de infererte reglene ved å bruke mønstergjenkjenning. Mønstergjenkjenning brukes for å lage en generisk regel for hvordan en \verb|.c|-fil skal kompileres. For mønstergjenkjenning, brukes tegnet \verb|%|. Et eksempel på grunnleggende  mønstergje-\newline nkjenning kan ses under:
+
+\begin{lstlisting}
+%.o : %.c
+        gcc -c $< -o $@
+\end{lstlisting}
+
+hvor \verb|$@| og \verb|$<| er automatiske variabler. \verb|$@| referer til målet som blir generert ved å kjøre regelen, mens \verb|$<| referer til første avhengighet i regelen. Akkurat denne regelen definerer byggeprosessen slik at en hvilken som helst \verb|.o|-fil blir generert ved å kompilere den tilsvarende \verb|.c|-filen med \verb|gcc|. Mønstergjenkjenning og \textit{order-only} avhengigheter kan kombineres elegant for å automatisk kompilere \verb|.c|-filene inn i den dedikerte byggemappen:
+
+
+\begin{lstlisting}
+build/%.o : %.c | build
+        gcc -c $< -o $@
+\end{lstlisting}
+
+For å gjøre prosessen mer lettvint, er det greit å definere alle avhengighetene (\verb|main.c|, \verb|pizza_bread.c|, \verb|pizza_sauce.c|, og \verb|pizza_topping.c|) i en dedikert regel som referer til variablene. Dette gjøres ved å kombinere mønstergjenkjenning og substitusjon:
+
+\begin{lstlisting}
+ SOURCES := main.c pizza_bread.c pizza_sauce.c pizza_topping.c
+ 
+ SRC := $(SOURCES:%c=source/%c)
+\end{lstlisting}
+
+Denne deklarasjonen vil ta alle .c filene fra variabelen \verb|SOURCES| og legge til mappeprefikset \verb|source|. Dermed trenger man ikke å skrive alle avhengighetene (\verb|main.c|, \verb|pizza_bread.c|, \verb|pizza_sauce.c|, og \verb|pizza_topping.c|) for hver enkel fil, men man kan bare bruke variabelen \verb|SOURCES|. Den komplette makefilen for \verb|pizza| består av følgende kode:
+
+
+\begin{lstlisting}
+SOURCES := main.c pizza_bread.c pizza_sauce.c pizza_topping.c
+
+BUILD_DIR := build
+
+OBJ := $(SOURCES:%.c=$(BUILD_DIR)/%.o)
+
+SRC_DIR := source
+SRC := $(SOURCES:%.c=$(SRC_DIR)/%.c)
+
+CC := gcc
+CFLAGS := -O0 -g3 -Wall -Werror
+
+.DEFAULT_GOAL := pizza
+
+pizza : $(OBJ)
+    $(CC) $(OBJ) -o $@
+    
+$(BUILD_DIR) :
+    mkdir $(BUILD_DIR)
+
+$(BUILD_DIR)/%.o : $(SRC_DIR)/%.c | $(BUILD_DIR)
+    $(CC) -c $< -o $@
+
+.PHONY : clean
+clean:
+    rm -rf $(.DEFAULT_GOAL) $(BUILD_DIR)
+\end{lstlisting}
+
