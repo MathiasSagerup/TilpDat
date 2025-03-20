@@ -1,0 +1,30 @@
+\section{Oppgave 1 (100\%) - Heisprogrammering med stigediagram}\label{sec:3-oppgave1}
+Å jobbe med tilpassede datasystemer er ofte en øvelse i å lese datablad, og å jobbe med PLS er på ingen måte noe unntak. En av grunnene til dette er det at tilpassede datasystemer er svært spesialiserte systemer, og i motsetning til generell programmering i en IDE finnes det derfor ofte kun informasjon om disse datasystemene i dokumentasjonen som blir gitt av leverandøren.\\
+
+I denne laboppgaven skal dere derfor bruke de utdelte databladene til å implementere grunnleggende heislogikk, og dette er derfor også en slags introduksjon til den neste laboppgaven i TTK4235, nemlig heislaben. Denne oppgaven inneholder to deler: heisspesifikasjon og datablad. Tanken er at dere skal implementere heisspesifikasjonen i Sysmac og overføre den til vår NX102-9000. Til hjelp så har dere walkthroughen vi gikk gjennom i starten av dette lab-dokumentet, samt den utdelte dokumentasjonen.\\
+
+Denne oppgaven skal gi dere grunnleggende kunnskap om programmering av PLSer med stigediagrammer. Før dere spør læringsassistenter, sjekk ut appendiksen, dokumentasjonen eller kurskompendiet for å se om dere finner svar på spørsmålene deres der.
+
+\subsection{Dokumentasjon}
+Dere har fått utdelt to pdfer med dokumentasjon, nemlig "Sysmac Studio Version 1 Operation Manual.pdf" og "Sysmac Kurskompendie.pdf". Førstnevnte er den fullstendige dokumentasjonen til Sysmac, og kan lastes ned fra Omron sin nettside \href{https://assets.omron.eu/downloads/manual/en/v5/w504_sysmac_studio_operation_manual_en.pdf}{HER}, men også i TTK4235 sin GitHub-organisasjon, \href{https://github.com/ITK-TTK4235}{HER}. Den andre er en slags introduksjon til programmet, og finnes også i GitHub-organisasjonen vår. Dersom dere lurer på noe veldig spesifikt ville jeg konsultert dokumentasjonen, mens kurskompendiet kan gi litt praktisk info om hvordan man faktisk bruker programmet. I denne laben forventes det bruk av dokumentasjonen, ettersom det er dette man får tilgang til dersom man skulle jobbet med NX102-9000 ute i industrien.\\
+
+Tidligere i denne laben gikk vi gjennom hvordan man raskt kommer i gang med bruk av Sysmac, og dere trenger nok derfor ikke å gå så nøye gjennom de tre første kapitlene av dokumentasjonen. Kapittel 3 i dokumentasjonen, altså "Section 3 System Design", kan derimot være kjekk å ta en titt på dersom du har trøbbel med selve Sysmac-programmet.\\
+
+Kapittel 4, "Programming", er det dere vil få mest bruk for, og da særlig delkapittel 4-5 "Programming Ladder Diagrams". Her vil dere finne det dere trenger for å programmere stigediagrammer.\\
+
+Ut over dette vil kapittel 5, 6 og 7 kunne være nyttige for henholdsvis oppsett av PLSen, tilkopling til PLSen, samt debugging, dersom dette skulle trengs.\\
+
+\subsection{Heisens funksjonalitet}
+Heisfunksjonaliteten skal implementeres gjennom stigeprogrammering, som består i å bygge stigediagram av stigetrinn slik vi gjorde tidligere i denne labteksten. I programmeringsområdet i Sysmac vil man finne byggeblokkene under "Toolbox", som man finner på høyre side av brukergrensesnittet. Her har man en søkefunksjon det kan lønne å benytte seg av. To viktige underkategorier i "Toolbox" er "Timer" og "Ladder Tools", hvor særlig "Rung", "Input" og "Output" er sentrale. Ellers refererer vi til kapittel 4.5 i dokumentasjonen. Eller anbefaler vi å eksperimentere med diverse "Function" og "Function Block" i stigediagrammene deres. Disse dukker altså opp når man høyreklikker på et stigetrinn i programmeringsvinduet. Her har man muligheten til å søke etter kodeord for ting man kan trenge, og det kan være lurt å teste ut kodeord som "logic", "timer", "MOVE", osv. Det er mulig å lese om de ulike byggeklossene direkte i Sysmac, også kan man også trykke på "Help" i menylinja helt øverst, eller se i den utdelte dokumentasjonen.
+
+\subsubsection{Programmeringsoppgaven}
+Implementer følgende forenklede algoritme for heisoppførsel:
+
+\begin{itemize}
+    \item Heisen starter i en etasje, og kjører deretter i heissjakten.
+    \item Heisen stopper og åpner døra i 3 sekunder i hver etasje, og kjører deretter videre i samme retning til en ny etasje nås.
+    \item Når heisen har nådd toppetasjen, settes retningen til nedover. 
+    \item Når heisen har nådd bunnetasjen settes retningen til oppover. 
+    \item Bestillingsknappene skal ikke ha noen virkning i denne forenklede implementeringen.
+    \item Når en etasje nås skal det tilhørende etasjelyset lyse helt til en ny etasje nås.
+\end{itemize}

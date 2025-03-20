@@ -53,7 +53,7 @@ struct Elevator{
     struct Active_orders orders;
 
     //Elevator state
-    int last_floor; //Will never be
+    int last_floor; //Will never be -1
     int current_floor;
     int last_direction; //Will never be 0
     int current_direction; //0 = stopp, 1 = opp, -1 = ned
@@ -64,7 +64,159 @@ struct Elevator{
 
     //Emergency stopreturn elevator;
     bool stop;
+
+    //Door timer
+    clock_t start_time;
+
 };
+
+bool check_prioritized_exceptions(int current_floor, struct Active_orders orders, int current_direction){
+    bool exception = true;
+    if (current_direction == -1) { //Check lower exceptions
+        switch (current_floor){
+            case 2: {
+                if (orders.TWO_UP || orders.ONE_UP){
+                    exception = false;
+                }
+            }
+            case 1: {
+                if (orders.ONE_UP){
+                    exception = false;
+                }
+            }
+        }
+    } else if (current_direction == 1){ //Check higher exceptions
+        switch (current_floor){
+            case 1: {
+                if (orders.THREE_DOWN || orders.FOUR_DOWN){
+                    exception = false;
+                }
+            }
+            case 2: {
+                if (orders.FOUR_DOWN){
+                    exception = false;
+                }
+            }
+        }
+    }
+    return exception;
+}
+
+bool check_no_more_orders(int current_floor, struct Active_orders orders, int current_direction){
+    bool exception = false;
+    if (current_direction == -1){
+        switch (current_floor){
+            case 2: {
+                if (
+                    !orders.THREE_DOWN &&
+                    !orders.TWO_DOWN &&
+                    !orders.PANEL_TWO &&
+                    !orders.PANEL_ONE
+                ) {exception = true;}
+            }
+            case 1: {
+                if (
+                    !orders.TWO_DOWN &&
+                    !orders.PANEL_ONE
+                ) {exception = true;}
+            }
+        }
+    } else if (current_direction == 1){
+        switch (current_floor){
+            case 1: {
+                if (
+                    !orders.THREE_UP &&
+                    !orders.TWO_UP &&
+                    !orders.PANEL_FOUR &&
+                    !orders.PANEL_THREE
+                ) {exception = true;}
+            }
+            case 2: {
+                if (
+                    !orders.THREE_UP &&
+                    !orders.PANEL_FOUR
+                ) {exception = true;}
+            }
+        }
+    }
+    return exception;
+}
+
+bool check_order_at_floor(int current_floor, struct Active_orders orders){
+    bool order_at_floor = false;
+    switch (current_floor){
+        case 0:{
+            if(orders.ONE_UP || orders.PANEL_ONE) {order_at_floor = true;}
+        }
+        case 1:{
+            if(orders.TWO_UP || orders.TWO_DOWN || orders.PANEL_TWO) {order_at_floor = true;}
+        }
+        case 2:{
+            if(orders.THREE_UP || orders.THREE_DOWN || orders.PANEL_THREE) {order_at_floor = true;}
+        }
+        case 3:{
+            if(orders.FOUR_DOWN || orders.PANEL_FOUR) {order_at_floor = true;}
+        }
+    }
+    return order_at_floor;
+}
+
+bool check_higher_orders(int current_floor, struct Active_orders orders){
+    bool higher_order = false;
+    switch (current_floor){
+        case 0:{
+            if( check_order_at_floor(1,orders)||
+                check_order_at_floor(2,orders)||
+                check_order_at_floor(3,orders)
+            ) {higher_order = true;}
+            break;
+        }
+        case 1:{
+            if( check_order_at_floor(2,orders)||
+                check_order_at_floor(3,orders)
+            ) {higher_order = true;}
+            break;
+        }
+        case 2:{
+            if(check_order_at_floor(3,orders)) {higher_order = true;}
+            break;
+        }
+    }
+    if(higher_order == true) {
+        printf("true\n");
+    } else {
+        printf("false");
+    }
+    return higher_order;
+}
+
+bool check_lower_orders(int current_floor, struct Active_orders orders) {
+    bool lower_order = false;
+
+    switch (current_floor) {
+        case 3:
+            if (check_order_at_floor(2, orders) ||
+                check_order_at_floor(1, orders) ||
+                check_order_at_floor(0, orders)) {
+                lower_order = true;
+            }
+            break;
+
+        case 2:
+            if (check_order_at_floor(1, orders) ||
+                check_order_at_floor(0, orders)) {
+                lower_order = true;
+            }
+            break;
+
+        case 1:
+            if (check_order_at_floor(0, orders)) {
+                lower_order = true;
+            }
+            break;
+    }
+    return lower_order;
+}
 
 void turn_off_all_lights_at_floor(int floor){
     elevio_buttonLamp(floor, BUTTON_HALL_UP, 0);
@@ -73,6 +225,7 @@ void turn_off_all_lights_at_floor(int floor){
 }
 
 struct Elevator remove_orders_from_floor(struct Elevator elevator, int floor){
+    printf("Remove orders");
     if (floor == 0) {
         elevator.orders.ONE_UP = false;
         elevator.orders.PANEL_ONE = false;
@@ -110,6 +263,8 @@ struct Elevator Initialize () {
     elevator.orders.PANEL_FOUR = false;
     
     elevator.state = INITIALIZING;
+    elevator.door_open = false;
+    elevator.obstruction = false;
 
     return elevator;
 }
@@ -123,6 +278,7 @@ struct Elevator elevator_logic(struct Elevator elevator){
             } else {
                 elevator.current_direction = 0;
                 elevator.state = WAIT_FOR_ORDER;
+                elevator.last_direction = 1;
             }
             //Dørlogikk
             break;
@@ -149,6 +305,7 @@ struct Elevator elevator_logic(struct Elevator elevator){
                 break;
             }
             else if (floor_ordered > elevator.current_floor){
+
                 elevator.current_direction = DIRN_UP;
                 elevator.state = MOVING_UP;
             } else if (floor_ordered < elevator.current_floor){
@@ -164,8 +321,17 @@ struct Elevator elevator_logic(struct Elevator elevator){
         }
 
         case MOVING_UP:{
-            elevator.last_direction = MOVING_UP;
-            if ((elevator.orders.TWO_UP == true || elevator.orders.PANEL_TWO == true) && elevator.current_floor == 1){
+            elevator.last_direction = 1;
+            if( elevator.current_floor != -1 &&
+                check_prioritized_exceptions(elevator.current_floor, elevator.orders, elevator.current_direction) && 
+                check_no_more_orders(elevator.current_floor, elevator.orders, elevator.current_direction)){
+                printf("Exception");
+                elevator.last_direction = 1;
+                elevator = remove_orders_from_floor(elevator, elevator.current_floor);
+                elevator.current_direction = 0;
+                elevator.state = LOAD_ON_AND_OFF;
+            }
+            else if ((elevator.orders.TWO_UP == true || elevator.orders.PANEL_TWO == true) && elevator.current_floor == 1){
                 elevator.state = LOAD_ON_AND_OFF;    
                 elevator.current_direction = DIRN_STOP;
                 turn_off_all_lights_at_floor(1);
@@ -188,7 +354,16 @@ struct Elevator elevator_logic(struct Elevator elevator){
         }
 
         case MOVING_DOWN:{
-            if ((elevator.orders.PANEL_ONE == true || elevator.orders.ONE_UP == true) && elevator.current_floor == 0){
+            elevator.last_direction = -1;
+            if( elevator.current_floor != -1 &&
+                check_prioritized_exceptions(elevator.current_floor, elevator.orders, elevator.current_direction) && 
+                check_no_more_orders(elevator.current_floor, elevator.orders, elevator.current_direction)){
+                elevator.last_direction = 1;
+                elevator = remove_orders_from_floor(elevator, elevator.current_floor);
+                elevator.current_direction = 0;
+                elevator.state = LOAD_ON_AND_OFF;
+            } 
+            else if ((elevator.orders.PANEL_ONE == true || elevator.orders.ONE_UP == true) && elevator.current_floor == 0){
                 elevator.state = LOAD_ON_AND_OFF;
                 elevator.current_direction = DIRN_STOP;
                 turn_off_all_lights_at_floor(0);
@@ -208,31 +383,128 @@ struct Elevator elevator_logic(struct Elevator elevator){
             }
             break;
         }
-        default:
+        
+        case LOAD_ON_AND_OFF:{
+            printf("Loanonandoff\n");
+            if (!elevator.door_open){
+                elevator.door_open = true;
+                elevator.start_time = clock();
+                printf("start klokke \n");
+            }
+            if (elevator.obstruction){
+                elevator.door_open = true;
+                elevator.start_time = clock();
+                printf("Obstruction \n");
+            }
+            if (elevator.door_open){
+                printf("Start time: %.2f, Current time: %.2f\n",
+                    (double)elevator.start_time*100 / CLOCKS_PER_SEC,
+                    (double)clock()*100 / CLOCKS_PER_SEC);
+             
+                if ((((float)clock() - elevator.start_time)*100/CLOCKS_PER_SEC) > 3){
+//                    printf("3 sekunder har gått \n");
+//                    printf("Last direction %d", elevator.last_direction);
+
+                    elevator.door_open = false;
+
+                    if(elevator.last_direction == 1){
+                        if(check_higher_orders(elevator.current_floor, elevator.orders)){
+                            elevator.state = MOVING_UP;
+                            elevator.current_direction = 1;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+
+                        } else if(check_lower_orders(elevator.current_floor, elevator.orders)){
+                            elevator.state = MOVING_DOWN;
+                            elevator.current_direction = -1;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+
+                        } else if(check_order_at_floor(elevator.current_floor, elevator.orders)){
+                            elevator.door_open = true;
+
+                        } else {
+                            elevator.state = WAIT_FOR_ORDER;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+                        }
+                    }
+                    else if(elevator.last_direction == -1){
+                        if(check_lower_orders(elevator.current_floor, elevator.orders)){
+                            elevator.state = MOVING_DOWN;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+                            elevator.current_direction = -1;
+
+                        } else if(check_higher_orders(elevator.current_floor, elevator.orders)){
+                            elevator.state = MOVING_UP;
+                            elevator.current_direction = 1;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+
+                        } else if(check_order_at_floor(elevator.current_floor, elevator.orders)){
+                            elevator.door_open = true;
+                        } else {
+                            elevator.state = WAIT_FOR_ORDER;
+                            remove_orders_from_floor(elevator, elevator.current_floor);
+                        }
+                    }
+                }
+            }
+        break;
+        }
+
+        case EMERGENCY_STOP:{
+            printf("emergency stop");
+            elevator.current_direction = 0;
+            elevator.orders.ONE_UP = false;
+            elevator.orders.TWO_UP = false;
+            elevator.orders.TWO_DOWN = false;
+            elevator.orders.THREE_DOWN = false;
+            elevator.orders.THREE_UP = false;
+            elevator.orders.FOUR_DOWN = false;
+            elevator.orders.PANEL_ONE = false;
+            elevator.orders.PANEL_TWO = false;
+            elevator.orders.PANEL_THREE = false;
+            elevator.orders.PANEL_FOUR = false;
+            elevator.door_open = false;
+            if (elevio_stopButton() == false){
+
+
+
+                elevator.state = WAIT_FOR_ORDER;
+            }
             break;
-          // code block
+        }
+
+        default: {
+            break;
+        }
     }
     return elevator;
 }
 
+
 struct Elevator read_input(struct Elevator elevator){
     //Read floor data
     elevator.current_floor = elevio_floorSensor(); //Updates real time floor data including -1
-    if (elevio_floorSensor() != -1) {elevator.last_floor = elevio_floorSensor();} //Updates last_floor if floor is defined
+    if (elevio_floorSensor() != -1) {
+        elevator.last_floor = elevio_floorSensor(); //Updates last_floor if floor is defined
+    } 
 
     //Check for new orders
-    if (elevio_callButton(0, BUTTON_CAB)) {elevator.orders.PANEL_ONE = true;}
-    if (elevio_callButton(1, BUTTON_CAB)) {elevator.orders.PANEL_TWO = true;}
-    if (elevio_callButton(2, BUTTON_CAB)) {elevator.orders.PANEL_THREE = true;}
-    if (elevio_callButton(3, BUTTON_CAB)) {elevator.orders.PANEL_FOUR = true;}
-    
-    if (elevio_callButton(0, BUTTON_HALL_UP)) {elevator.orders.ONE_UP = true;}
-    if (elevio_callButton(1, BUTTON_HALL_DOWN)) {elevator.orders.TWO_DOWN = true;}
-    if (elevio_callButton(1, BUTTON_HALL_UP)) {elevator.orders.TWO_UP = true;}
-    if (elevio_callButton(2, BUTTON_HALL_DOWN)) {elevator.orders.THREE_DOWN = true;}
-    if (elevio_callButton(2, BUTTON_HALL_UP)) {elevator.orders.THREE_UP = true;}
-    if (elevio_callButton(3, BUTTON_HALL_DOWN)) {elevator.orders.FOUR_DOWN = true;}
-    
+    if ((elevio_stopButton() == false) && (elevator.state != INITIALIZING)){
+        if (elevio_callButton(0, BUTTON_CAB)) {elevator.orders.PANEL_ONE = true;}
+        if (elevio_callButton(1, BUTTON_CAB)) {elevator.orders.PANEL_TWO = true;}
+        if (elevio_callButton(2, BUTTON_CAB)) {elevator.orders.PANEL_THREE = true;}
+        if (elevio_callButton(3, BUTTON_CAB)) {elevator.orders.PANEL_FOUR = true;}
+        if (elevio_callButton(0, BUTTON_HALL_UP)) {elevator.orders.ONE_UP = true;}
+        if (elevio_callButton(1, BUTTON_HALL_DOWN)) {elevator.orders.TWO_DOWN = true;}
+        if (elevio_callButton(1, BUTTON_HALL_UP)) {elevator.orders.TWO_UP = true;}
+        if (elevio_callButton(2, BUTTON_HALL_DOWN)) {elevator.orders.THREE_DOWN = true;}
+        if (elevio_callButton(2, BUTTON_HALL_UP)) {elevator.orders.THREE_UP = true;}
+        if (elevio_callButton(3, BUTTON_HALL_DOWN)) {elevator.orders.FOUR_DOWN = true;}
+    } else if ((elevio_stopButton() == true) && (elevator.state != INITIALIZING)) {
+        elevator.state = EMERGENCY_STOP;
+    }
+
+    //Read door realted
+    elevator.obstruction = elevio_obstruction();
     return elevator;
 }
 
@@ -251,6 +523,12 @@ void send_actions_to_elev(struct Elevator elevator){
     elevio_buttonLamp(1, BUTTON_CAB, elevator.orders.PANEL_TWO);
     elevio_buttonLamp(2, BUTTON_CAB, elevator.orders.PANEL_THREE);
     elevio_buttonLamp(3, BUTTON_CAB, elevator.orders.PANEL_FOUR);
+
+    //Update floor indicator
+    elevio_floorIndicator(elevator.last_floor);
+
+    //Door communication
+    elevio_doorOpenLamp(elevator.door_open);
 }
 
 int main(){
@@ -267,10 +545,10 @@ int main(){
         //execute(next_move); //Get the physical elevator to execute the desired order
 
 
-        if(elevio_stopButton() && !(elevator.state == INITIALIZING)){
-            elevio_motorDirection(DIRN_STOP);
-            running = 0;
-        }
+    //    if(elevio_stopButton() && !(elevator.state == INITIALIZING)){
+    //        elevio_motorDirection(DIRN_STOP);
+    //        running = 0;
+    //    }
     }
 
 

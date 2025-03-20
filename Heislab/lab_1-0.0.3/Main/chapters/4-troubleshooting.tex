@@ -1,0 +1,27 @@
+\appendix
+\section{Appendiks - PC- og PLS-bryteren på heisboksen}
+Denne skal alltid stå på "PLS" under hele labjobbingen, ellers får ikke PLSen kontakt med heis-hardwaren.
+
+\section{Appendiks - Brukernavn og passord}
+Dersom dere blir spurt om brukernavn og passord i løpet av laben, så er dette henholdsvis "TTK4235" og "Sanntid15".
+
+\section{Appendiks - Direkte tilkopling til PLS}
+Når vi skal kople til PLSen, så skal dette gjøres via en ethernet-kabel som går fra SanntidsPCen til PLSens utgang på framsiden markert med "PORT1 EtherNet/IP". Sørg for at dette er gjort. Deretter skal man kunne kople seg til PLSen gjennom å åpne opp Sysmac Studio, og deretter velge "Connect to Device" fra hovedmenyen.  Her velger du "Direct Connection via Ethernet", og deretter "Connect".\\
+
+Dersom dette ikke skulle fungere, sjekk at PLSen er koplet til SanntidsPCen med ethernet-kabel. Dersom dette heller ikke skulle fungere, prøv å bytte der kabelen er koplet til PLSen fra Port 1 til Port 2 eller omvendt.
+
+% Dersom dette ikke skulle fungere, kan du ta en titt på kapittel 1.8 i det utdelte kurskompendiet. Her vil man bruke et tilleggsprogram kalt "DirectEthernetUtility" som kommer med Sysmac, til å sjekke at vi har velg riktig tilkoplingsvei fra Windows sin side. Dette er et program som man krever administrator-tilgang for å få kjørt. Ta derfor kontakt med stud.ass. og be dem ta kontakt med vit.ass. for å rette opp i dette.
+
+\section{Appendiks - Programmering, bygging og flashing}
+Det er viktig å huske på det at vi må være offline for å både kunne programmere og endre på variabelnavn i Sysmac. Når dette er gjort, kan vi trykke på "Project" og så "Build Controller" for å bygge prosjektet vårt. Når vi nå ønsker å overføre programmet vårt til PLSen (altså å "flashe"), er vi nødt til å kople oss på ved å trykke på "Online", og deretter trykke på det runde hjulet "Synchronize", for så å velge "Transfer to Controller".\\
+
+Det er verdt å være obs på det at vi må ha et stigetrinn, eller "rung", som ikke er tomt for at man ikke skal få feilmeldinger når man trykker "Project" og så "Build Controller".\\
+
+\section{Appendiks - Å kjøre programmet på PLSen}
+Når programmet vårt er ferdig flashet til PLSen har vi lyst til å kjøre det. Da kopler man seg rett og slett på PLSen gjennom å være "Online", og så trykke på knappen "RUN Mode" som er rett ved siden av "Online"-knappen. Hvis denne knappen allerede er grå, betyr det at du allerede er i dette moduset.
+
+\section{Appendiks - Hvor programmerer man?}
+På venstre hånd i Sysmac under "Multiview Explorer" trykker du på "Programming", deretter på "POUs", deretter på "Programs", deretter på "Program0", og så "Section0". I det store hvite feltet får du da opp en såkalt "rung", som er de to vertikale endepunkene med en horisontal linje mellom. Programmet vårt skal bestå av disse, og du programmerer her.
+
+\section{Appendiks - Hvor finner vi I/O-oppsettet vårt?}
+På venstre hånd i Sysmac under "Multiview Explorer" trykker du på "Configuration and Setup", og deretter på "I/O Map". Dersom du har gjort synkroniseringen riktig vil du finne det faktiske PLS-oppsettet vårt med tilhørende digitale og analoge I/O-porter her.
